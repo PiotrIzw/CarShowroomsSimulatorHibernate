@@ -8,6 +8,7 @@
 
     <persistence-unit name="myDatabase" transaction-type="RESOURCE_LOCAL">
         <class>carshowroomsimulator.model.Vehicle</class>
+        <class>carshowroomsimulator.model.CarShowroom</class>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
             <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost/mydatabase?serverTimezone=UTC"/>

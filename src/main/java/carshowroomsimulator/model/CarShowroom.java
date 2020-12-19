@@ -1,19 +1,34 @@
 package carshowroomsimulator.model;
 
+import javax.persistence.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
+@Entity
 public class CarShowroom {
 
-    private final String showroomName;
-    private final List<Vehicle> carList;
-    private final int maxShowroomCapacity;
+    @Id
+    @GeneratedValue
+    private long id;
+    @Column(name = "showroom_name")
+    private String showroomName;
+
+    @OneToMany
+    @Column(name = "cars")
+    @JoinColumn(name = "showroom_id")
+    private List<Vehicle> carList;
+
+    @Column(name = "showroom_capacity")
+    private int maxShowroomCapacity;
 
     public CarShowroom(String showroomName, List<Vehicle> carList, int maxShowroomCapacity) {
         this.showroomName = showroomName;
         this.carList = carList;
         this.maxShowroomCapacity = maxShowroomCapacity;
+    }
+
+    public CarShowroom() {
+
     }
 
     public int getMaxShowroomCapacity() {
