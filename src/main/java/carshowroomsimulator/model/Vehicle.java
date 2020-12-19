@@ -1,10 +1,18 @@
 package carshowroomsimulator.model;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Comparator;
-
+@Entity
+@Table(name = "Vehicle")
 public class Vehicle implements Comparable<Vehicle>, Comparator<Vehicle>, Serializable {
 
+    @Id
+    @GeneratedValue
+    private long id;
     @ColumnsNames("Brand")
     private String brand;
     @ColumnsNames("Model")
