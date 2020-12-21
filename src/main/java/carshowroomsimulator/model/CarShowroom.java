@@ -22,13 +22,26 @@ public class CarShowroom {
     @Column(name = "showroom_capacity")
     private int maxShowroomCapacity;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "showroom_id", nullable = false)
+    private List<Rating> rating;
+
     public CarShowroom(String showroomName, int maxShowroomCapacity) {
         this.showroomName = showroomName;
         this.maxShowroomCapacity = maxShowroomCapacity;
     }
 
+
     public CarShowroom() {
 
+    }
+
+    public List<Rating> getRating() {
+        return rating;
+    }
+
+    public void setRating(List<Rating> rating) {
+        this.rating = rating;
     }
 
     public long getId() {

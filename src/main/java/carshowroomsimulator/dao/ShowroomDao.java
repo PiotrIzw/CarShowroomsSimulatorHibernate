@@ -63,6 +63,9 @@ public class ShowroomDao implements Dao<CarShowroom> {
 
     }
 
+    public void updateCarsList(CarShowroom showroom){
+        executeInsideTransaction(entityManager -> entityManager.merge(showroom));
+    }
     private void executeInsideTransaction(Consumer<EntityManager> action) {
 
 

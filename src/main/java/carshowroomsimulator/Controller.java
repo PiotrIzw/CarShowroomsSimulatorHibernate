@@ -1,6 +1,7 @@
 package carshowroomsimulator;
 
 import carshowroomsimulator.dao.Dao;
+import carshowroomsimulator.dao.RatingDao;
 import carshowroomsimulator.dao.ShowroomDao;
 import carshowroomsimulator.dao.VehicleDao;
 import carshowroomsimulator.data.DataGenerator;
@@ -26,7 +27,7 @@ public class Controller {
 
     Dao<CarShowroom> carShowroomDao = new ShowroomDao();
     Dao<Vehicle> vehicleDao = new VehicleDao();
-
+    Dao<Rating> ratingDao = new RatingDao();
 
     List<CarShowroom> allShowrooms;
 
@@ -73,7 +74,7 @@ public class Controller {
             cityComboBox.getItems().add(showroomName);
         }
 
-        //loadAllShowrooms();
+        loadAllShowrooms();
         brandNameColumn.setCellValueFactory(cellData -> cellData.getValue().brandProperty());
         modelNameColumn.setCellValueFactory(cellData -> cellData.getValue().modelProperty());
         priceColumn.setCellValueFactory(cellData -> cellData.getValue().priceProperty().asObject());
@@ -134,7 +135,7 @@ public class Controller {
         TableModel selectedItem = handleMouseClickOnTable();
         CarShowroom selectedShowroom = null;
         for(CarShowroom showroom : allShowrooms){
-            if(showroom.getShowroomName() == selectedItem.getShowroomName()){
+            if(showroom.getShowroomName().equals(selectedItem.getShowroomName())){
                 selectedShowroom = showroom;
             }
         }
@@ -269,7 +270,7 @@ public class Controller {
         TableModel selectedItem = handleMouseClickOnTable();
         CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(selectedItem.getShowroomName());
 
-        Vehicle selectedCar = ((VehicleDao) vehicleDao).searchCar(selectedItem.getBrand());
+        Vehicle selectedCar = ((VehicleDao) vehicleDao).searchCar(selectedShowroom.getShowroomName(), selectedItem.getBrand());
         brand = selectedCar.getBrand();
         model = selectedCar.getModel();
         amount = selectedCar.getAmount();
@@ -310,6 +311,7 @@ public class Controller {
         CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(cityComboBox.getValue());
         selectedShowroom.getCarList().clear();
         selectedShowroom.getCarList().addAll(Objects.requireNonNull(CSVFileReader.readCsvFile(selectedShowroom)));
+        ((ShowroomDao) carShowroomDao).updateCarsList(selectedShowroom);
         changeTableView();
     }
 
@@ -334,18 +336,64 @@ public class Controller {
         }
     }
 
-//    public void loadAllShowrooms() {
-//        for (Map.Entry<String, CarShowroom> entry : container.getShowroomMap().entrySet()) {
-//            CarShowroom showroom = container.findShowroomByName(entry.getValue().getShowroomName());
-//            try {
-//                showroom.getCarList().addAll(CSVFileReader.readCsvFile(showroom));
-//            } catch (Exception e) {
-//                Alert alert = new Alert(Alert.AlertType.ERROR);
-//                alert.setTitle("Car Showrooms Simulator");
-//                alert.setHeaderText("Error while loading data to showrooms!");
-//                alert.setContentText("File " + showroom.getShowroomName() +".csv not found!");
-//                alert.showAndWait();
-//            }
-//        }
-//    }
+    public void loadAllShowrooms() {
+        for (CarShowroom carShowroom : allShowrooms) {
+            CarShowroom showroom = ((ShowroomDao) carShowroomDao).findShowroomByName(carShowroom.getShowroomName());
+            try {
+                for(Vehicle car : CSVFileReader.readCsvFile(showroom)){
+                    if(!showroom.getCarList().contains(car)){
+                        showroom.getCarList().add(car);
+                    }
+                }
+
+                ((ShowroomDao) carShowroomDao).updateCarsList(showroom);
+            } catch (Exception e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Car Showrooms Simulator");
+                alert.setHeaderText("Error while loading data to showrooms!");
+                alert.setContentText("File " + showroom.getShowroomName() +".csv not found!");
+                alert.showAndWait();
+            }
+        }
+    }
+
+    public void handleRating(ActionEvent actionEvent) {
+        List<Integer> choices = new ArrayList<>();
+        choices.add(1);
+        choices.add(2);
+        choices.add(3);
+        choices.add(4);
+        choices.add(5);
+
+        ChoiceDialog<Integer> dialog = new ChoiceDialog<>(1, choices);
+        dialog.setTitle("Car Showrooms Simulator");
+        dialog.setHeaderText("Look, a Choice Dialog");
+        dialog.setContentText("Choose your letter:");
+
+        Optional<Integer> result = dialog.showAndWait();
+        int chosenNumber = -1;
+        if (result.isPresent()){
+            chosenNumber = result.get();
+        }
+
+        TextInputDialog dialogReview = new TextInputDialog("");
+        dialogReview.setTitle("Car Showrooms Simulator");
+        dialogReview.setHeaderText("Look, a Text Input Dialog");
+        dialogReview.setContentText("Please enter your name:");
+
+        String review = "";
+        Optional<String> resultText = dialogReview.showAndWait();
+        if (resultText.isPresent()){
+            review = resultText.get();
+        }
+        Rating rating = new Rating(RatingEnum.getValue(chosenNumber), review,  new java.sql.Timestamp(new java.util.Date().getTime()));
+        CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(cityComboBox.getValue());
+        List<Rating> ratingList = new ArrayList<>();
+        ratingList.add(rating);
+        selectedShowroom.setRating(ratingList);
+        ((ShowroomDao) carShowroomDao).updateCarsList(selectedShowroom);
+
+
+
+    }
 }

@@ -46,10 +46,11 @@ public class VehicleDao implements Dao<Vehicle>{
         executeInsideTransaction(entityManager -> entityManager.remove(vehicle));
     }
 
-    public Vehicle searchCar(String carBrand){
-        Query query = entityManager.createQuery("select v from Vehicle v where v.brand = :carBrand");
+    public Vehicle searchCar(String showroomName, String carBrand){
+        Query query = entityManager.createQuery("select v from Vehicle v, CarShowroom cs where v.brand = :carBrand and cs.showroomName = :showroom");
         query.setParameter("carBrand", carBrand);
-        return (Vehicle) query.getSingleResult();
+        query.setParameter("showroom", showroomName);
+        return (Vehicle) query.getResultList().get(0);
     }
 
     private void executeInsideTransaction(Consumer<EntityManager> action) {
