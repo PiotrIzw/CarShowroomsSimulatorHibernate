@@ -45,17 +45,19 @@ public class ShowroomDao implements Dao<CarShowroom> {
     }
 
     public CarShowroom findShowroomByName(String name){
-        Query query = entityManager.createQuery("select cs from CarShowroom cs where cs.showroom_name = :name");
+        Query query = entityManager.createQuery("select cs from CarShowroom cs where cs.showroomName = :name");
+        query.setParameter("name", name);
         return (CarShowroom) query.getSingleResult();
     }
 
-    public void getProduct(Vehicle vehicle) {
+    public void getProduct(CarShowroom showroom, Vehicle vehicle) {
         if(vehicle.getAmount() > 1){
             vehicle.setAmount(vehicle.getAmount() - 1);
             executeInsideTransaction(entityManager -> entityManager.merge(vehicle));
         }
         else{
-            executeInsideTransaction(entityManager -> entityManager.remove(vehicle));
+            showroom.getCarList().remove(vehicle);
+            executeInsideTransaction(entityManager -> entityManager.merge(showroom));
         }
 
 

@@ -10,6 +10,7 @@ public class CarShowroom {
 
     @Id
     @GeneratedValue(strategy=GenerationType.TABLE)
+
     private long id;
     @Column(name = "showroom_name")
     private String showroomName;

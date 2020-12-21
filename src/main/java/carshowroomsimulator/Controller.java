@@ -210,7 +210,7 @@ public class Controller {
             errorAlert.setContentText("Selected car is actually reserved.");
             errorAlert.showAndWait();
         } else {
-            ((ShowroomDao) carShowroomDao).getProduct(selectedCar);
+            ((ShowroomDao) carShowroomDao).getProduct(selectedShowroom, selectedCar);
             changeTableView();
         }
 

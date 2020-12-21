@@ -20,7 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class ShoppingCart{
+public class ShoppingCartController {
 
     public Label shoppingCartLabel;
     private String brand, model, showroomName;
@@ -44,7 +44,7 @@ public class ShoppingCart{
     @FXML
     private TableColumn<ShoppingCartTableModel, Integer> amountColumn = new TableColumn<>("Amount");
 
-    private List<Vehicle> vehicleList = new ArrayList<>();
+    private List<Vehicle> vehicleList = new LinkedList<>();
     private ObservableList<ShoppingCartTableModel> modelList = FXCollections.observableArrayList();
 
 
@@ -56,6 +56,7 @@ public class ShoppingCart{
             e.printStackTrace();
         }
 
+        Controller.getBasket().clear();
         goBackButton.getScene().getWindow().hide();
 
     }

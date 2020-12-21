@@ -48,6 +48,7 @@ public class VehicleDao implements Dao<Vehicle>{
 
     public Vehicle searchCar(String carBrand){
         Query query = entityManager.createQuery("select v from Vehicle v where v.brand = :carBrand");
+        query.setParameter("carBrand", carBrand);
         return (Vehicle) query.getSingleResult();
     }
 
