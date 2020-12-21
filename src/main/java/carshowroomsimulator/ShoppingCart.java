@@ -23,7 +23,6 @@ import java.util.*;
 public class ShoppingCart{
 
     public Label shoppingCartLabel;
-    private CarShowroomContainer container;
     private String brand, model, showroomName;
     private Double price;
     private int amount;

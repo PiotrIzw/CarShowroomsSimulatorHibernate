@@ -4,31 +4,50 @@ import javax.persistence.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 @Entity
 public class CarShowroom {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy=GenerationType.TABLE)
     private long id;
     @Column(name = "showroom_name")
     private String showroomName;
 
-    @OneToMany
-    @Column(name = "cars")
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "showroom_id")
     private List<Vehicle> carList;
 
     @Column(name = "showroom_capacity")
     private int maxShowroomCapacity;
 
-    public CarShowroom(String showroomName, List<Vehicle> carList, int maxShowroomCapacity) {
+    public CarShowroom(String showroomName, int maxShowroomCapacity) {
         this.showroomName = showroomName;
-        this.carList = carList;
         this.maxShowroomCapacity = maxShowroomCapacity;
     }
 
     public CarShowroom() {
 
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setShowroomName(String showroomName) {
+        this.showroomName = showroomName;
+    }
+
+    public void setCarList(List<Vehicle> carList) {
+        this.carList = carList;
+    }
+
+    public void setMaxShowroomCapacity(int maxShowroomCapacity) {
+        this.maxShowroomCapacity = maxShowroomCapacity;
     }
 
     public int getMaxShowroomCapacity() {
@@ -95,8 +114,8 @@ public class CarShowroom {
 //            }
 //        });
 
-        for(Vehicle v : carList){
-            if(v.getBrand().contains(productName)){
+        for (Vehicle v : carList) {
+            if (v.getBrand().contains(productName)) {
                 return v;
             }
         }
@@ -153,13 +172,7 @@ public class CarShowroom {
         return carList;
     }
 
-    public void reserveCar(Vehicle product) {
-        for (Vehicle v : carList) {
-            if (v.compareTo(product) == 0) {
-                v.setReserved(true);
-            }
-        }
-    }
+
 
 
     public Vehicle max() {

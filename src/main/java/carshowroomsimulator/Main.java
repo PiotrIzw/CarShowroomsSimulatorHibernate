@@ -37,17 +37,6 @@ public class Main extends Application {
 
 
     public static void main(String[] args) {
-
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myDatabase");
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-
-
-        //query2HQL(entityManager);
-        entityManager.close();
-        entityManagerFactory.close();
-
-
-
         launch(args);
     }
 }

@@ -1,23 +1,21 @@
 package carshowroomsimulator.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Comparator;
 @Entity
 public class Vehicle implements Comparable<Vehicle>, Comparator<Vehicle>, Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy=GenerationType.TABLE)
     private long id;
     @ColumnsNames("Brand")
     private String brand;
     @ColumnsNames("Model")
     private String model;
+    @Column(name = "item_condition")
     @ColumnsNames("Item Condition")
-    private transient ItemCondition condition;
+    private ItemCondition condition;
     @ColumnsNames("Price")
     private double price;
     @ColumnsNames("Year of Production")
@@ -31,6 +29,7 @@ public class Vehicle implements Comparable<Vehicle>, Comparator<Vehicle>, Serial
     @ColumnsNames("Is Reserved")
     private boolean isReserved;
 
+
     public Vehicle(String brand, String model, ItemCondition condition, double price,
                    int yearOfProduction, double mileage, double engineCapacity, int amount, boolean isReserved) {
         this.brand = brand;
@@ -42,6 +41,38 @@ public class Vehicle implements Comparable<Vehicle>, Comparator<Vehicle>, Serial
         this.engineCapacity = engineCapacity;
         this.amount = amount;
         this.isReserved = isReserved;
+    }
+
+    public Vehicle(){
+
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public void setCondition(ItemCondition condition) {
+        this.condition = condition;
+    }
+
+    public void setYearOfProduction(int yearOfProduction) {
+        this.yearOfProduction = yearOfProduction;
+    }
+
+    public void setMileage(double mileage) {
+        this.mileage = mileage;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
     }
 
     public boolean isReserved() {
@@ -72,9 +103,6 @@ public class Vehicle implements Comparable<Vehicle>, Comparator<Vehicle>, Serial
         this.engineCapacity = engineCapacity;
     }
 
-    public Vehicle() {
-
-    }
 
     public void print() {
         System.out.println(

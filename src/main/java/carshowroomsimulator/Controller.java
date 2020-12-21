@@ -1,5 +1,8 @@
 package carshowroomsimulator;
 
+import carshowroomsimulator.dao.Dao;
+import carshowroomsimulator.dao.ShowroomDao;
+import carshowroomsimulator.dao.VehicleDao;
 import carshowroomsimulator.data.DataGenerator;
 import carshowroomsimulator.model.*;
 import javafx.collections.FXCollections;
@@ -20,9 +23,15 @@ import java.util.*;
 import static javafx.application.Platform.exit;
 
 public class Controller {
+
+    Dao<CarShowroom> carShowroomDao = new ShowroomDao();
+    Dao<Vehicle> vehicleDao = new VehicleDao();
+
+
+    List<CarShowroom> allShowrooms;
+
     public TextField searchTextField;
     public Button shoppingCartButton;
-    private CarShowroomContainer container;
     private static List<Vehicle> basketModelList = new ArrayList<>();
     private String brand, model, showroomName;
     private Double price;
@@ -55,13 +64,16 @@ public class Controller {
 
         cityComboBox.getItems().add("Any");
 
-        container = new CarShowroomContainer(dataGenerator.getCarShowroomLinkedHashMap());
-        for (Map.Entry<String, CarShowroom> entry : container.getShowroomMap().entrySet()) {
-            showroomName = entry.getValue().getShowroomName();
+        dataGenerator.setDatabaseData();
+
+
+        allShowrooms = carShowroomDao.getAll();
+        for (CarShowroom showroom : allShowrooms) {
+            showroomName = showroom.getShowroomName();
             cityComboBox.getItems().add(showroomName);
         }
 
-        loadAllShowrooms();
+        //loadAllShowrooms();
         brandNameColumn.setCellValueFactory(cellData -> cellData.getValue().brandProperty());
         modelNameColumn.setCellValueFactory(cellData -> cellData.getValue().modelProperty());
         priceColumn.setCellValueFactory(cellData -> cellData.getValue().priceProperty().asObject());
@@ -76,11 +88,11 @@ public class Controller {
 
     public void changeTableView() {
         carsTableView.getItems().clear();
-        for (Map.Entry<String, CarShowroom> entry : container.getShowroomMap().entrySet()) {
-            List<Vehicle> carsList = entry.getValue().getCarList();
-            showroomName = entry.getValue().getShowroomName();
+        for (CarShowroom showroom : allShowrooms) {
 
-            for (Vehicle v : carsList) {
+            showroomName = showroom.getShowroomName();
+
+            for (Vehicle v : showroom.getCarList()) {
                 if (selectedShowroom.equals("Any")) {
                     brand = v.getBrand();
                     model = v.getModel();
@@ -120,15 +132,26 @@ public class Controller {
     @FXML
     public void handleCarBooking() {
         TableModel selectedItem = handleMouseClickOnTable();
-        CarShowroom selectedShowroom = container.findShowroomByName(selectedItem.getShowroomName());
-        Vehicle selectedCar = container.getShowroomMap().get(selectedShowroom.getShowroomName()).search(selectedItem.getBrand());
+        CarShowroom selectedShowroom = null;
+        for(CarShowroom showroom : allShowrooms){
+            if(showroom.getShowroomName() == selectedItem.getShowroomName()){
+                selectedShowroom = showroom;
+            }
+        }
+        Vehicle selectedCar = null;
+        for(Vehicle vehicle : selectedShowroom.getCarList()){
+            if(vehicle.getBrand().equals(selectedItem.getBrand())){
+                selectedCar = vehicle;
+            }
+        }
+
         if (selectedCar.isReserved()) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
             errorAlert.setHeaderText("You can't do that!");
             errorAlert.setContentText("Selected car is actually reserved.");
             errorAlert.showAndWait();
         }
-        container.getShowroomMap().get(selectedShowroom.getShowroomName()).reserveCar(selectedCar);
+        ((ShowroomDao) carShowroomDao).reserveCar(selectedCar);
         changeTableView();
         System.out.println(selectedCar.isReserved());
 
@@ -144,8 +167,15 @@ public class Controller {
                 final TableModel tableModel = row.getItem();
 
                 if (row.isHover() && tableModel != null) {
-                    CarShowroom selectedShowroom = container.findShowroomByName(tableModel.getShowroomName());
-                    Vehicle selectedCar = container.getShowroomMap().get(selectedShowroom.getShowroomName()).search(tableModel.getBrand());
+                    CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(tableModel.getShowroomName());
+
+                    Vehicle selectedCar = null;
+                    for(Vehicle v : selectedShowroom.getCarList()){
+                        if(v.getBrand().equals(tableModel.getBrand())){
+                            selectedCar = v;
+                        }
+                    }
+
 
                     tableTooltip.setText(
                             "Engine capacity: " + selectedCar.getEngineCapacity() + System.lineSeparator() +
@@ -165,8 +195,14 @@ public class Controller {
     @FXML
     public void handleBuyCar() {
         TableModel selectedItem = handleMouseClickOnTable();
-        CarShowroom selectedShowroom = container.findShowroomByName(selectedItem.getShowroomName());
-        Vehicle selectedCar = container.getShowroomMap().get(selectedShowroom.getShowroomName()).search(selectedItem.getBrand());
+        CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(selectedItem.getShowroomName());
+
+        Vehicle selectedCar = null;
+        for(Vehicle v : selectedShowroom.getCarList()){
+            if(v.getBrand().equals(selectedItem.getBrand())){
+                selectedCar = v;
+            }
+        }
 
         if (selectedCar.isReserved()) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
@@ -174,7 +210,7 @@ public class Controller {
             errorAlert.setContentText("Selected car is actually reserved.");
             errorAlert.showAndWait();
         } else {
-            container.getShowroomMap().get(selectedShowroom.getShowroomName()).getProduct(selectedCar);
+            ((ShowroomDao) carShowroomDao).getProduct(selectedCar);
             changeTableView();
         }
 
@@ -190,9 +226,9 @@ public class Controller {
             builder.setLength(Math.max(builder.length() - 1, 0));
 
         carsTableView.getItems().clear();
-        for (Map.Entry<String, CarShowroom> entry : container.getShowroomMap().entrySet()) {
-            List<Vehicle> carsList = entry.getValue().getCarList();
-            showroomName = entry.getValue().getShowroomName();
+        for (CarShowroom showroom : allShowrooms) {
+            List<Vehicle> carsList = showroom.getCarList();
+            showroomName = showroom.getShowroomName();
             for (Vehicle v : carsList) {
                 if (v.getBrand().startsWith(builder.toString())) {
                     brand = v.getBrand();
@@ -231,9 +267,9 @@ public class Controller {
 
     public void handleAddingToShoppingCart(ActionEvent actionEvent) {
         TableModel selectedItem = handleMouseClickOnTable();
-        CarShowroom selectedShowroom = container.findShowroomByName(selectedItem.getShowroomName());
+        CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(selectedItem.getShowroomName());
 
-        Vehicle selectedCar = container.getShowroomMap().get(selectedShowroom.getShowroomName()).search(selectedItem.getBrand());
+        Vehicle selectedCar = ((VehicleDao) vehicleDao).searchCar(selectedItem.getBrand());
         brand = selectedCar.getBrand();
         model = selectedCar.getModel();
         amount = selectedCar.getAmount();
@@ -261,7 +297,7 @@ public class Controller {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == buttonTypeOne) {
-            CarShowroom selectedShowroom = container.findShowroomByName(cityComboBox.getValue());
+            CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(cityComboBox.getValue());
             CSVFileWriter.writeCsvFile(selectedShowroom);
         } else if (result.get() == buttonTypeTwo) {
             saveAllShowrooms();
@@ -271,7 +307,7 @@ public class Controller {
     }
 
     public void handleLoadingDataToShowroom(ActionEvent actionEvent) throws FileNotFoundException {
-        CarShowroom selectedShowroom = container.findShowroomByName(cityComboBox.getValue());
+        CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(cityComboBox.getValue());
         selectedShowroom.getCarList().clear();
         selectedShowroom.getCarList().addAll(Objects.requireNonNull(CSVFileReader.readCsvFile(selectedShowroom)));
         changeTableView();
@@ -285,7 +321,7 @@ public class Controller {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == ButtonType.OK) {
-            CarShowroom selectedShowroom = container.findShowroomByName(cityComboBox.getValue());
+            CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(cityComboBox.getValue());
             CSVFileWriter.writeCsvFile(selectedShowroom);
         }
 
@@ -293,24 +329,23 @@ public class Controller {
     }
 
     public void saveAllShowrooms() {
-        for (Map.Entry<String, CarShowroom> entry : container.getShowroomMap().entrySet()) {
-            CarShowroom showroom = container.findShowroomByName(entry.getValue().getShowroomName());
-            CSVFileWriter.writeCsvFile(showroom);
+        for (CarShowroom carShowroom : allShowrooms) {
+            CSVFileWriter.writeCsvFile(carShowroom);
         }
     }
 
-    public void loadAllShowrooms() {
-        for (Map.Entry<String, CarShowroom> entry : container.getShowroomMap().entrySet()) {
-            CarShowroom showroom = container.findShowroomByName(entry.getValue().getShowroomName());
-            try {
-                showroom.getCarList().addAll(CSVFileReader.readCsvFile(showroom));
-            } catch (Exception e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Car Showrooms Simulator");
-                alert.setHeaderText("Error while loading data to showrooms!");
-                alert.setContentText("File " + showroom.getShowroomName() +".csv not found!");
-                alert.showAndWait();
-            }
-        }
-    }
+//    public void loadAllShowrooms() {
+//        for (Map.Entry<String, CarShowroom> entry : container.getShowroomMap().entrySet()) {
+//            CarShowroom showroom = container.findShowroomByName(entry.getValue().getShowroomName());
+//            try {
+//                showroom.getCarList().addAll(CSVFileReader.readCsvFile(showroom));
+//            } catch (Exception e) {
+//                Alert alert = new Alert(Alert.AlertType.ERROR);
+//                alert.setTitle("Car Showrooms Simulator");
+//                alert.setHeaderText("Error while loading data to showrooms!");
+//                alert.setContentText("File " + showroom.getShowroomName() +".csv not found!");
+//                alert.showAndWait();
+//            }
+//        }
+//    }
 }
