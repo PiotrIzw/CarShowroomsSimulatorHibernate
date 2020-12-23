@@ -56,6 +56,21 @@ public class Controller {
     private TableColumn<TableModel, String> showroomNameColumn = new TableColumn<>("Showroom");
     @FXML
     private TableColumn<TableModel, Boolean> isReservedColumn = new TableColumn<>("Reserved");
+
+    @FXML
+    private TableView<ShowroomsTableModel> showroomsTableView = new TableView<>();
+    @FXML
+    private TableColumn<ShowroomsTableModel, Long> showroomsIDColumn = new TableColumn<>("Id");
+    @FXML
+    private TableColumn<ShowroomsTableModel, String> showroomsNameColumn = new TableColumn<>("Name");
+    @FXML
+    private TableColumn<ShowroomsTableModel, Integer> showroomCapacityColumn = new TableColumn<>("Capacity");
+    @FXML
+    private TableColumn<ShowroomsTableModel, Long> showroomsNumberOfReviewsColumn = new TableColumn<>("Reviews Count");
+    @FXML
+    private TableColumn<ShowroomsTableModel, Double> showroomsAverageRatingColumn = new TableColumn<>("Average Rating");
+    private ObservableList<ShowroomsTableModel> showroomsModelList = FXCollections.observableArrayList();
+
     private ObservableList<TableModel> modelList = FXCollections.observableArrayList();
     @FXML
     Tooltip tableTooltip;
@@ -65,16 +80,25 @@ public class Controller {
 
         cityComboBox.getItems().add("Any");
 
-        dataGenerator.setDatabaseData();
+        //dataGenerator.setDatabaseData();
 
 
-        allShowrooms = carShowroomDao.getAll();
+        // allShowrooms = carShowroomDao.getAll();
+        allShowrooms = loadAllShowroomsFromDatabase();
         for (CarShowroom showroom : allShowrooms) {
             showroomName = showroom.getShowroomName();
             cityComboBox.getItems().add(showroomName);
         }
 
-        loadAllShowrooms();
+        showroomsIDColumn.setCellValueFactory(cellData -> cellData.getValue().showroomIdProperty().asObject());
+        showroomsNameColumn.setCellValueFactory(cellData -> cellData.getValue().showroomNameProperty());
+        showroomCapacityColumn.setCellValueFactory(cellData -> cellData.getValue().showroomCapacityProperty().asObject());
+        showroomsNumberOfReviewsColumn.setCellValueFactory(cellData -> cellData.getValue().reviewsCountProperty().asObject());
+        showroomsAverageRatingColumn.setCellValueFactory(cellData -> cellData.getValue().averageRatingProperty().asObject());
+        showroomsTableView.getColumns().addAll(showroomsIDColumn, showroomsNameColumn, showroomCapacityColumn, showroomsNumberOfReviewsColumn, showroomsAverageRatingColumn);
+        changeShowroomsTableView();
+
+        //loadAllShowrooms();
         brandNameColumn.setCellValueFactory(cellData -> cellData.getValue().brandProperty());
         modelNameColumn.setCellValueFactory(cellData -> cellData.getValue().modelProperty());
         priceColumn.setCellValueFactory(cellData -> cellData.getValue().priceProperty().asObject());
@@ -82,17 +106,43 @@ public class Controller {
         showroomNameColumn.setCellValueFactory(cellData -> cellData.getValue().showroomNameProperty());
         isReservedColumn.setCellValueFactory(cellData -> cellData.getValue().isReservedProperty().asObject());
 
+        carsTableView.setVisible(false);
         carsTableView.getColumns().clear();
         carsTableView.getColumns().addAll(brandNameColumn, modelNameColumn, priceColumn, yearOfProductionColumn, showroomNameColumn, isReservedColumn);
 
     }
+
+
+    public void changeShowroomsTableView() {
+        showroomsModelList.clear();
+        int showroomCapacity;
+        long id;
+        long ratingsCount = -1;
+        double avgRating = -1;
+        for (CarShowroom showroom : allShowrooms) {
+            System.out.println();
+            showroomName = showroom.getShowroomName();
+            showroomCapacity = showroom.getMaxShowroomCapacity();
+            id = showroom.getId();
+            System.out.println(id);
+            ratingsCount = ((RatingDao) ratingDao).getRatingsCount(id);
+            avgRating = ((RatingDao) ratingDao).getAverageRating(id);
+
+            showroomsModelList.add(new ShowroomsTableModel(id, showroomName, showroomCapacity, ratingsCount, avgRating));
+            showroomsTableView.setItems(showroomsModelList);
+        }
+
+
+    }
+
+
+
 
     public void changeTableView() {
         carsTableView.getItems().clear();
         for (CarShowroom showroom : allShowrooms) {
 
             showroomName = showroom.getShowroomName();
-
             for (Vehicle v : showroom.getCarList()) {
                 if (selectedShowroom.equals("Any")) {
                     brand = v.getBrand();
@@ -121,6 +171,8 @@ public class Controller {
 
     @FXML
     public void handleCityComboBox() {
+        carsTableView.setVisible(true);
+        showroomsTableView.setVisible(false);
         selectedShowroom = cityComboBox.getValue();
         changeTableView();
     }
@@ -134,14 +186,14 @@ public class Controller {
     public void handleCarBooking() {
         TableModel selectedItem = handleMouseClickOnTable();
         CarShowroom selectedShowroom = null;
-        for(CarShowroom showroom : allShowrooms){
-            if(showroom.getShowroomName().equals(selectedItem.getShowroomName())){
+        for (CarShowroom showroom : allShowrooms) {
+            if (showroom.getShowroomName().equals(selectedItem.getShowroomName())) {
                 selectedShowroom = showroom;
             }
         }
         Vehicle selectedCar = null;
-        for(Vehicle vehicle : selectedShowroom.getCarList()){
-            if(vehicle.getBrand().equals(selectedItem.getBrand())){
+        for (Vehicle vehicle : selectedShowroom.getCarList()) {
+            if (vehicle.getBrand().equals(selectedItem.getBrand())) {
                 selectedCar = vehicle;
             }
         }
@@ -171,8 +223,8 @@ public class Controller {
                     CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(tableModel.getShowroomName());
 
                     Vehicle selectedCar = null;
-                    for(Vehicle v : selectedShowroom.getCarList()){
-                        if(v.getBrand().equals(tableModel.getBrand())){
+                    for (Vehicle v : selectedShowroom.getCarList()) {
+                        if (v.getBrand().equals(tableModel.getBrand())) {
                             selectedCar = v;
                         }
                     }
@@ -199,8 +251,8 @@ public class Controller {
         CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(selectedItem.getShowroomName());
 
         Vehicle selectedCar = null;
-        for(Vehicle v : selectedShowroom.getCarList()){
-            if(v.getBrand().equals(selectedItem.getBrand())){
+        for (Vehicle v : selectedShowroom.getCarList()) {
+            if (v.getBrand().equals(selectedItem.getBrand())) {
                 selectedCar = v;
             }
         }
@@ -340,8 +392,8 @@ public class Controller {
         for (CarShowroom carShowroom : allShowrooms) {
             CarShowroom showroom = ((ShowroomDao) carShowroomDao).findShowroomByName(carShowroom.getShowroomName());
             try {
-                for(Vehicle car : CSVFileReader.readCsvFile(showroom)){
-                    if(!showroom.getCarList().contains(car)){
+                for (Vehicle car : CSVFileReader.readCsvFile(showroom)) {
+                    if (!showroom.getCarList().contains(car)) {
                         showroom.getCarList().add(car);
                     }
                 }
@@ -351,10 +403,14 @@ public class Controller {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Car Showrooms Simulator");
                 alert.setHeaderText("Error while loading data to showrooms!");
-                alert.setContentText("File " + showroom.getShowroomName() +".csv not found!");
+                alert.setContentText("File " + showroom.getShowroomName() + ".csv not found!");
                 alert.showAndWait();
             }
         }
+    }
+
+    public List<CarShowroom> loadAllShowroomsFromDatabase() {
+        return ((ShowroomDao) carShowroomDao).getAll();
     }
 
     public void handleRating(ActionEvent actionEvent) {
@@ -367,33 +423,36 @@ public class Controller {
 
         ChoiceDialog<Integer> dialog = new ChoiceDialog<>(1, choices);
         dialog.setTitle("Car Showrooms Simulator");
-        dialog.setHeaderText("Look, a Choice Dialog");
-        dialog.setContentText("Choose your letter:");
+        dialog.setHeaderText("Select rating value!");
+        dialog.setContentText("Choose one from list:");
 
         Optional<Integer> result = dialog.showAndWait();
         int chosenNumber = -1;
-        if (result.isPresent()){
+        if (result.isPresent()) {
             chosenNumber = result.get();
         }
 
         TextInputDialog dialogReview = new TextInputDialog("");
         dialogReview.setTitle("Car Showrooms Simulator");
-        dialogReview.setHeaderText("Look, a Text Input Dialog");
-        dialogReview.setContentText("Please enter your name:");
+        dialogReview.setHeaderText("Write your review!");
+        dialogReview.setContentText("Enter it in the textfield:");
 
         String review = "";
         Optional<String> resultText = dialogReview.showAndWait();
-        if (resultText.isPresent()){
+        if (resultText.isPresent()) {
             review = resultText.get();
         }
-        Rating rating = new Rating(RatingEnum.getValue(chosenNumber), review,  new java.sql.Timestamp(new java.util.Date().getTime()));
         CarShowroom selectedShowroom = ((ShowroomDao) carShowroomDao).findShowroomByName(cityComboBox.getValue());
-        List<Rating> ratingList = new ArrayList<>();
-        ratingList.add(rating);
-        selectedShowroom.setRating(ratingList);
-        ((ShowroomDao) carShowroomDao).updateCarsList(selectedShowroom);
+        Rating rating = new Rating(RatingEnum.getValue(chosenNumber), review, new java.sql.Timestamp(new java.util.Date().getTime()), selectedShowroom);
+
+        ratingDao.save(rating);
+        changeShowroomsTableView();
 
 
+    }
 
+    public void handleShowingShowrooms(ActionEvent actionEvent) {
+        showroomsTableView.setVisible(true);
+        carsTableView.setVisible(false);
     }
 }

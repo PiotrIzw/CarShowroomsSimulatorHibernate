@@ -60,8 +60,16 @@
                   <Insets top="10.0" />
                </VBox.margin>
             </Button>
+            <Button mnemonicParsing="false" onAction="#handleShowingShowrooms" prefHeight="25.0" prefWidth="154.0" text="Show all showrooms">
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </Button>
          </children>
       </VBox>
+      <TableView fx:id="showroomsTableView" onMouseClicked="#handleMouseClickOnTable" onMouseMoved="#handleMouseHoverOnTable" prefHeight="346.0" prefWidth="483.0" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="1" GridPane.rowSpan="5">
+        
+      </TableView>
    </children>
    <padding>
       <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

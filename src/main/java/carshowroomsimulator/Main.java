@@ -10,7 +10,10 @@ import javafx.stage.Stage;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-
+/*
+Run config
+compile exec:java -Dexec.cleanupDaemonThreads=false -f pom.xml
+ */
 public class Main extends Application {
 
     private static Stage primaryStage;
